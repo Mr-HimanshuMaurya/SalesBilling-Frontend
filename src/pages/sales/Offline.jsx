@@ -1,0 +1,12 @@
+import { Layout } from "../../components/layout/Layout.jsx";
+import { LeadTable } from "../../components/shared/LeadTable.jsx";
+
+const Offline = () => {
+  return (
+    <Layout pageTitle="Offline">
+      <LeadTable />
+    </Layout>
+  );
+};
+
+export default Offline;
