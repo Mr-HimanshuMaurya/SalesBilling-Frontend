@@ -193,7 +193,9 @@ export const ViewBillModal = ({ isOpen, onClose, bill, userRole }) => {
     ) || [];
 
   const handleDownloadPdf = (type) => {
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:9000";
+    const baseUrl =
+      import.meta.env.VITE_API_URL ||
+      "https://salesbilling-backend.onrender.com";
     const suffix = bill.adminDirectBill
       ? `?type=${type || adminPreviewType || "tax"}`
       : "";
@@ -374,15 +376,12 @@ export const ViewBillModal = ({ isOpen, onClose, bill, userRole }) => {
               {companyInfo.addressLine1}, {companyInfo.addressLine2}
             </div>
             <div>{companyInfo.cityPincode}</div>
-            <div>
-              GSTIN: <strong>{companyInfo.gstin}</strong>
-            </div>
+
             <div>
               State: {companyInfo.stateName} | Code: {companyInfo.stateCode}
             </div>
-            <div>CIN: {companyInfo.cin}</div>
+            <div>Phone: 9076713270</div>
             <div>Email: {companyInfo.email}</div>
-            <div>Website: {companyInfo.website}</div>
           </div>
           {/* Right: Invoice meta */}
           <div

@@ -133,7 +133,9 @@ export const ProformaInvoice = () => {
   });
 
   const handleDownloadPdf = (billId) => {
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:9000";
+    const baseUrl =
+      import.meta.env.VITE_API_URL ||
+      "https://salesbilling-backend.onrender.com";
     window.open(`${baseUrl}/api/pdf/${billId}`, "_blank");
   };
 

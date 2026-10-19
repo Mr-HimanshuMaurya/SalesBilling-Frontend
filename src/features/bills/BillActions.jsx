@@ -111,7 +111,9 @@ export const BillActions = ({ bill, onView, onEdit }) => {
   });
 
   const handleDownloadPdf = (type = "tax") => {
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:9000";
+    const baseUrl =
+      import.meta.env.VITE_API_URL ||
+      "https://salesbilling-backend.onrender.com";
     const suffix = bill.adminDirectBill ? `?type=${type}` : "";
     window.open(`${baseUrl}/api/pdf/${bill._id}${suffix}`, "_blank");
   };

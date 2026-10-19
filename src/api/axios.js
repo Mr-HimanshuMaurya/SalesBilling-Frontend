@@ -1,8 +1,8 @@
 import axios from "axios";
 
 const api = axios.create({
-  // baseURL: "https://billings.cloudedata.com/api",
-  baseURL: "http://localhost:9000/api",
+  baseURL: "https://salesbilling-backend.onrender.com/api",
+  // baseURL: "http://localhost:9000/api",
 });
 
 api.interceptors.request.use((config) => {
