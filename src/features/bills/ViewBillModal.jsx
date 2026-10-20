@@ -113,18 +113,22 @@ const formatINR = (amount) =>
   }).format(amount);
 
 const formatDate2D = (d) =>
-  new Date(d).toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
+  d
+    ? new Date(d).toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })
+    : "—";
 
 const formatDateShort = (d) =>
-  new Date(d).toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  d
+    ? new Date(d).toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : "—";
 
 // ─── Shared cell style ──────────────────────────────────────────────────────
 const td = (extra = {}) => ({
@@ -154,17 +158,21 @@ export const ViewBillModal = ({ isOpen, onClose, bill, userRole }) => {
     : bill.status === "draft";
 
   const baseAmount = parseFloat(bill.amount) || 0;
-  const gstType = bill.gstType === "CGST_SGST" ? "CGST_SGST" : "IGST";
+  const gstType = ["IGST", "CGST_SGST", "NO_GST"].includes(bill.gstType)
+    ? bill.gstType
+    : "IGST";
   const isSplitGst = gstType === "CGST_SGST";
+  const isNoGst = gstType === "NO_GST";
   const cgstAmount = isSplitGst
     ? parseFloat(((baseAmount * 9) / 100).toFixed(2))
     : 0;
   const sgstAmount = isSplitGst
     ? parseFloat(((baseAmount * 9) / 100).toFixed(2))
     : 0;
-  const igstAmount = !isSplitGst
-    ? parseFloat(((baseAmount * GST_RATE) / 100).toFixed(2))
-    : 0;
+  const igstAmount =
+    gstType === "IGST"
+      ? parseFloat(((baseAmount * GST_RATE) / 100).toFixed(2))
+      : 0;
   const gstAmount = isSplitGst ? cgstAmount + sgstAmount : igstAmount;
   const totalAmount = parseFloat((baseAmount + gstAmount).toFixed(2));
   const roundedTotal = Math.round(totalAmount);
@@ -513,7 +521,7 @@ export const ViewBillModal = ({ isOpen, onClose, bill, userRole }) => {
                       <div style={{ fontWeight: 700 }}>{item.description}</div>
                     </td>
                     <td style={{ ...td(), textAlign: "center" }}>
-                      {GST_RATE}%
+                      {isNoGst ? 0 : GST_RATE}%
                     </td>
                     <td style={{ ...td(), textAlign: "center" }}>
                       {String(qty).padStart(2, "0")} Nos.
@@ -541,7 +549,9 @@ export const ViewBillModal = ({ isOpen, onClose, bill, userRole }) => {
                       {formatDate2D(bill.renewalDate)}
                     </div>
                   </td>
-                  <td style={{ ...td(), textAlign: "center" }}>{GST_RATE}%</td>
+                  <td style={{ ...td(), textAlign: "center" }}>
+                    {isNoGst ? 0 : GST_RATE}%
+                  </td>
                   <td style={{ ...td(), textAlign: "center" }}>{qtyLabel}</td>
                   <td style={{ ...td(), textAlign: "right" }}>
                     {formatINR(baseAmount)}
@@ -716,7 +726,7 @@ export const ViewBillModal = ({ isOpen, onClose, bill, userRole }) => {
                   </td>
                 </tr>
               </>
-            ) : (
+            ) : isNoGst ? null : (
               <tr>
                 <td
                   style={{
@@ -905,13 +915,21 @@ export const ViewBillModal = ({ isOpen, onClose, bill, userRole }) => {
                     "SGST Amt (₹)",
                     "Total Amount (₹)",
                   ]
-                : [
-                    "HSN/SAC",
-                    "Taxable Value (₹)",
-                    "IGST Rate",
-                    "IGST Amount (₹)",
-                    "Total Amount (₹)",
-                  ]
+                : isNoGst
+                  ? [
+                      "HSN/SAC",
+                      "Taxable Value (₹)",
+                      "GST Rate",
+                      "GST Amount (₹)",
+                      "Total Amount (₹)",
+                    ]
+                  : [
+                      "HSN/SAC",
+                      "Taxable Value (₹)",
+                      "IGST Rate",
+                      "IGST Amount (₹)",
+                      "Total Amount (₹)",
+                    ]
               ).map((h) => (
                 <th
                   key={h}
@@ -998,7 +1016,7 @@ export const ViewBillModal = ({ isOpen, onClose, bill, userRole }) => {
                       textAlign: "center",
                     }}
                   >
-                    {GST_RATE}%
+                    {isNoGst ? 0 : GST_RATE}%
                   </td>
                   <td
                     style={{
@@ -1045,13 +1063,15 @@ export const ViewBillModal = ({ isOpen, onClose, bill, userRole }) => {
                     bold: false,
                   },
                 ]
-              : [
-                  {
-                    label: `IGST @ ${GST_RATE}%`,
-                    val: `₹ ${formatINR(igstAmount)}`,
-                    bold: false,
-                  },
-                ]),
+              : isNoGst
+                ? []
+                : [
+                    {
+                      label: `IGST @ ${GST_RATE}%`,
+                      val: `₹ ${formatINR(igstAmount)}`,
+                      bold: false,
+                    },
+                  ]),
           ].map(({ label, val }) => (
             <div
               key={label}

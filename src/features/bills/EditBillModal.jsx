@@ -65,7 +65,13 @@ export const EditBillModal = ({ isOpen, onClose, bill, mode = "edit" }) => {
     setClientId(bill?.client?._id || "");
     setService(bill?.service || "");
     setLineItems(itemsFromBill(bill));
-    setGstType(bill?.gstType === "CGST_SGST" ? "CGST_SGST" : "IGST");
+    setGstType(
+      bill?.gstType === "CGST_SGST"
+        ? "CGST_SGST"
+        : bill?.gstType === "NO_GST"
+          ? "NO_GST"
+          : "IGST",
+    );
     setStep(1);
 
     if (isRenewMode) {
@@ -424,7 +430,6 @@ export const EditBillModal = ({ isOpen, onClose, bill, mode = "edit" }) => {
                 type="date"
                 value={renewalDate}
                 onChange={(e) => setRenewalDate(e.target.value)}
-                required
               />
             </div>
 
@@ -449,9 +454,11 @@ export const EditBillModal = ({ isOpen, onClose, bill, mode = "edit" }) => {
               />
               <Input
                 label={
-                  gstType === "IGST"
-                    ? "Amount with IGST 18%"
-                    : "Amount with SGST 9% + CGST 9%"
+                  gstType === "NO_GST"
+                    ? "Total Amount (No GST)"
+                    : gstType === "IGST"
+                      ? "Amount with IGST 18%"
+                      : "Amount with SGST 9% + CGST 9%"
                 }
                 type="text"
                 prefix="₹"

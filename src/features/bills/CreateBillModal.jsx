@@ -361,11 +361,9 @@ export const CreateBillModal = ({ isOpen, onClose }) => {
               />
               <Input
                 label="Renewal Date"
-                className="text-red-500"
                 type="date"
                 value={renewalDate}
                 onChange={(e) => setRenewalDate(e.target.value)}
-                required
               />
             </div>
 
@@ -390,9 +388,11 @@ export const CreateBillModal = ({ isOpen, onClose }) => {
               />
               <Input
                 label={
-                  gstType === "IGST"
-                    ? "Amount with IGST 18%"
-                    : "Amount with SGST 9% + CGST 9%"
+                  gstType === "NO_GST"
+                    ? "Total Amount (No GST)"
+                    : gstType === "IGST"
+                      ? "Amount with IGST 18%"
+                      : "Amount with SGST 9% + CGST 9%"
                 }
                 type="text"
                 prefix="₹"

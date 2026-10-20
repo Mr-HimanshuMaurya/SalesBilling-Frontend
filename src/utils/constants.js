@@ -9,6 +9,7 @@ export const DEFAULT_SPECS = {
 export const GST_TYPES = [
   { value: "IGST", label: "IGST 18%" },
   { value: "CGST_SGST", label: "SGST 9% + CGST 9%" },
+  { value: "NO_GST", label: "No GST" },
 ];
 
 export const GST_RATE = 18;
