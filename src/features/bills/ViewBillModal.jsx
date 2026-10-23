@@ -202,8 +202,7 @@ export const ViewBillModal = ({ isOpen, onClose, bill, userRole }) => {
 
   const handleDownloadPdf = (type) => {
     const baseUrl =
-      import.meta.env.VITE_API_URL ||
-      "https://salesbilling-backend.onrender.com";
+      import.meta.env.VITE_API_URL || "https://billing.saviengineering.com";
     const suffix = bill.adminDirectBill
       ? `?type=${type || adminPreviewType || "tax"}`
       : "";

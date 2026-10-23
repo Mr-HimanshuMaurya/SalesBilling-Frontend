@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://salesbilling-backend.onrender.com/api",
+  baseURL: "https://billing.saviengineering.com/api",
   // baseURL: "http://localhost:9000/api",
 });
 

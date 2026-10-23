@@ -252,8 +252,7 @@ export const AllBills = () => {
 
   const handleDownloadPdf = (billId, adminDirectBill, type) => {
     const baseUrl =
-      import.meta.env.VITE_API_URL ||
-      "https://salesbilling-backend.onrender.com";
+      import.meta.env.VITE_API_URL || "https://billing.saviengineering.com";
     const suffix = adminDirectBill ? `?type=${type || "tax"}` : "";
     window.open(`${baseUrl}/api/pdf/${billId}${suffix}`, "_blank");
   };

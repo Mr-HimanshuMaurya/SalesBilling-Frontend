@@ -134,8 +134,7 @@ export const ProformaInvoice = () => {
 
   const handleDownloadPdf = (billId) => {
     const baseUrl =
-      import.meta.env.VITE_API_URL ||
-      "https://salesbilling-backend.onrender.com";
+      import.meta.env.VITE_API_URL || "https://billing.saviengineering.com";
     window.open(`${baseUrl}/api/pdf/${billId}`, "_blank");
   };
 
