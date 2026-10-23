@@ -19,6 +19,7 @@ export const Modal = ({ isOpen, onClose, title, children, size = "md" }) => {
     md: "max-w-2xl",
     lg: "max-w-4xl",
     xl: "max-w-6xl",
+    xxl: "max-w-[80vw]",
   };
 
   if (!isOpen) return null;

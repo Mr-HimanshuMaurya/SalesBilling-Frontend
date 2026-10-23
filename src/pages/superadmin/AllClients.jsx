@@ -11,6 +11,7 @@ import { Badge } from "../../components/ui/Badge";
 import { ConfirmDialog } from "../../components/shared/ConfirmDialog";
 import { CreateClientModal } from "../../features/clients/CreateClientModal";
 import { EditClientModal } from "../../features/clients/EditClientModal";
+import { ClientInvoicesModal } from "../../features/clients/ClientInvoicesModal";
 import { getClients, deleteClient } from "../../api/clients.api";
 import { usePagination } from "../../hooks/usePagination";
 import { useDebounce } from "../../hooks/useDebounce";
@@ -21,7 +22,9 @@ export const AllClients = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isInvoicesModalOpen, setIsInvoicesModalOpen] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
+  const [invoicesClient, setInvoicesClient] = useState(null);
   const [deletingClient, setDeletingClient] = useState(null);
   const [search, setSearch] = useState("");
   const [salesPerson, setSalesPerson] = useState("");
@@ -73,8 +76,14 @@ export const AllClients = () => {
         const count = row.billCount ?? 0;
         const isMultiple = count >= 2;
         return (
-          <span
-            className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold ${
+          <button
+            type="button"
+            onClick={() => {
+              setInvoicesClient(row);
+              setIsInvoicesModalOpen(true);
+            }}
+            title="View invoices"
+            className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold cursor-pointer transition-colors hover:ring-2 hover:ring-indigo-300 ${
               isMultiple
                 ? "bg-indigo-100 text-indigo-700 ring-1 ring-indigo-200"
                 : "bg-gray-100 text-gray-600"
@@ -82,7 +91,7 @@ export const AllClients = () => {
           >
             <FileText className="w-3 h-3" />
             {count}
-          </span>
+          </button>
         );
       },
     },
@@ -152,10 +161,10 @@ export const AllClients = () => {
               className="w-full sm:w-56"
             />
           </div>
-          <Button onClick={() => setIsCreateModalOpen(true)}>
+          {/* <Button onClick={() => setIsCreateModalOpen(true)}>
             <Plus className="w-4 h-4" />
             Create Client
-          </Button>
+          </Button> */}
         </div>
 
         <div className="p-6">
@@ -187,6 +196,15 @@ export const AllClients = () => {
           setEditingClient(null);
         }}
         client={editingClient}
+      />
+
+      <ClientInvoicesModal
+        isOpen={isInvoicesModalOpen}
+        onClose={() => {
+          setIsInvoicesModalOpen(false);
+          setInvoicesClient(null);
+        }}
+        client={invoicesClient}
       />
 
       <ConfirmDialog
