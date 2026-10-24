@@ -8,6 +8,7 @@ import {
   Calendar, // ✅ Add this
   Clock, // ✅ Add this
   ArrowRightLeft,
+  KeyRound,
 } from "lucide-react";
 import { Layout } from "../../components/layout/Layout";
 import { Button } from "../../components/ui/Button";
@@ -25,6 +26,7 @@ import {
   getUsers,
   createUser,
   updateUser,
+  changeUserPassword,
   deleteUser,
   toggleUserStatus,
 } from "../../api/users.api";
@@ -158,6 +160,94 @@ const CreateEditUserModal = ({ isOpen, onClose, user }) => {
   );
 };
 
+const ChangePasswordModal = ({ isOpen, onClose, user }) => {
+  const queryClient = useQueryClient();
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setNewPassword("");
+      setConfirmPassword("");
+    }
+  }, [isOpen]);
+
+  const isTooShort = newPassword.length > 0 && newPassword.length < 6;
+  const isMismatch = confirmPassword !== "" && newPassword !== confirmPassword;
+  const isValid = newPassword.length >= 6 && newPassword === confirmPassword;
+
+  const mutation = useMutation({
+    mutationFn: () => changeUserPassword(user._id, newPassword),
+    onSuccess: () => {
+      toast.success("Password changed successfully!");
+      queryClient.invalidateQueries(["users"]);
+      onClose();
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || "Failed to change password");
+    },
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!isValid) return;
+    mutation.mutate();
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Change Password" size="sm">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+          <p className="text-xs text-gray-500">Team Member</p>
+          <p className="text-sm font-semibold text-gray-900 break-words">
+            {user?.name}{" "}
+            <span className="font-normal text-gray-500">({user?.email})</span>
+          </p>
+        </div>
+
+        <Input
+          label="New Password"
+          type="password"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+          placeholder="Minimum 6 characters"
+          required
+        />
+
+        <Input
+          label="Confirm New Password"
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+        />
+
+        {isTooShort && (
+          <p className="text-xs text-red-500">
+            Password must be at least 6 characters long
+          </p>
+        )}
+        {isMismatch && (
+          <p className="text-xs text-red-500">Passwords do not match</p>
+        )}
+
+        <div className="flex justify-end gap-3 pt-2">
+          <Button
+            variant="secondary"
+            onClick={onClose}
+            disabled={mutation.isPending}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" disabled={mutation.isPending || !isValid}>
+            {mutation.isPending ? "Updating..." : "Update Password"}
+          </Button>
+        </div>
+      </form>
+    </Modal>
+  );
+};
+
 export const Users = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -168,6 +258,8 @@ export const Users = () => {
   const [scheduleUser, setScheduleUser] = useState(null); // ✅ Add this
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [transferUser, setTransferUser] = useState(null);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [passwordUser, setPasswordUser] = useState(null);
   const [search, setSearch] = useState("");
   const [role, setRole] = useState("");
   const debouncedSearch = useDebounce(search);
@@ -262,6 +354,18 @@ export const Users = () => {
           >
             <ToggleLeft className="w-4 h-4" />
           </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setPasswordUser(row);
+              setIsPasswordModalOpen(true);
+            }}
+            title="Change Password"
+            className="text-amber-500 hover:text-amber-700 hover:bg-amber-50"
+          >
+            <KeyRound className="w-4 h-4" />
+          </Button>
           {row.role !== "superadmin" && (
             <>
               <Button
@@ -277,15 +381,15 @@ export const Users = () => {
                 <ArrowRightLeft className="w-4 h-4" />
               </Button>
               <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setDeletingUser(row);
-                setIsDeleteConfirmOpen(true);
-              }}
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setDeletingUser(row);
+                  setIsDeleteConfirmOpen(true);
+                }}
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
             </>
           )}
         </div>
@@ -368,6 +472,15 @@ export const Users = () => {
         onSuccess={() => {
           queryClient.invalidateQueries(["users"]);
         }}
+      />
+
+      <ChangePasswordModal
+        isOpen={isPasswordModalOpen}
+        onClose={() => {
+          setIsPasswordModalOpen(false);
+          setPasswordUser(null);
+        }}
+        user={passwordUser}
       />
 
       <ConfirmDialog

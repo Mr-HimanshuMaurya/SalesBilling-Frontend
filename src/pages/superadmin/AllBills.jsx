@@ -15,6 +15,7 @@ import {
   Plus,
   Send,
   Mail,
+  Loader2,
 } from "lucide-react";
 import { Layout } from "../../components/layout/Layout";
 import { Button } from "../../components/ui/Button";
@@ -70,6 +71,7 @@ export const AllBills = () => {
   const [billingStartDate, setBillingStartDate] = useState("");
   const [billingEndDate, setBillingEndDate] = useState("");
   const [isExporting, setIsExporting] = useState(false);
+  const [downloadingBillId, setDownloadingBillId] = useState(null);
   const debouncedSearch = useDebounce(search);
   const { page, setPage } = usePagination();
   const queryClient = useQueryClient();
@@ -250,11 +252,46 @@ export const AllBills = () => {
     },
   });
 
-  const handleDownloadPdf = (billId, adminDirectBill, type) => {
-    const baseUrl =
-      import.meta.env.VITE_API_URL || "https://billing.saviengineering.com";
-    const suffix = adminDirectBill ? `?type=${type || "tax"}` : "";
-    window.open(`${baseUrl}/api/pdf/${billId}${suffix}`, "_blank");
+  const handleDownloadPdf = async (
+    billId,
+    type = "tax",
+    adminDirectBill = false,
+  ) => {
+    if (downloadingBillId) return;
+
+    setDownloadingBillId(billId);
+    const toastId = toast.loading("Generating PDF, please wait...");
+
+    try {
+      const baseUrl =
+        import.meta.env.VITE_API_URL || "https://billing.saviengineering.com";
+      const suffix = adminDirectBill ? `?type=${type}` : "";
+      const url = `${baseUrl}/api/pdf/${billId}${suffix}`;
+
+      const response = await fetch(url, {
+        method: "GET",
+      });
+
+      if (!response.ok) throw new Error("PDF generation failed");
+
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = downloadUrl;
+      a.download = `Invoice-${billId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      window.URL.revokeObjectURL(downloadUrl);
+      toast.success("PDF downloaded successfully!", { id: toastId });
+    } catch (error) {
+      console.error("Download error:", error);
+      toast.error("PDF download failed. Please try again.", { id: toastId });
+    } finally {
+      setDownloadingBillId(null);
+    }
   };
 
   const serviceNames = {
@@ -383,19 +420,27 @@ export const AllBills = () => {
                 variant="ghost"
                 size="sm"
                 title="Download Proforma PDF"
-                onClick={() =>
-                  handleDownloadPdf(row._id, true, "proforma")
-                }
+                disabled={downloadingBillId === row._id}
+                onClick={() => handleDownloadPdf(row._id, "proforma", true)}
               >
-                <Download className="w-4 h-4 text-gray-600" />
+                {downloadingBillId === row._id ? (
+                  <Loader2 className="w-4 h-4 text-gray-600 animate-spin" />
+                ) : (
+                  <Download className="w-4 h-4 text-gray-600" />
+                )}
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 title="Download Tax Invoice PDF"
-                onClick={() => handleDownloadPdf(row._id, true, "tax")}
+                disabled={downloadingBillId === row._id}
+                onClick={() => handleDownloadPdf(row._id, "tax", true)}
               >
-                <Download className="w-4 h-4 text-green-500" />
+                {downloadingBillId === row._id ? (
+                  <Loader2 className="w-4 h-4 text-green-500 animate-spin" />
+                ) : (
+                  <Download className="w-4 h-4 text-green-500" />
+                )}
               </Button>
               {!row.proformaSentAt && (
                 <Button
@@ -434,9 +479,14 @@ export const AllBills = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => handleDownloadPdf(row._id, false)}
+              disabled={downloadingBillId === row._id}
+              onClick={() => handleDownloadPdf(row._id, "tax", false)}
             >
-              <Download className="w-4 h-4 text-green-500" />
+              {downloadingBillId === row._id ? (
+                <Loader2 className="w-4 h-4 text-green-500 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4 text-green-500" />
+              )}
             </Button>
           )}
           {row.status === "correction" && (
@@ -706,20 +756,26 @@ export const AllBills = () => {
               </div>
               <p className="text-sm font-semibold text-gray-900">
                 {correctionBill?.correctionAt
-                  ? new Date(correctionBill.correctionAt).toLocaleDateString("en-IN", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                    })
+                  ? new Date(correctionBill.correctionAt).toLocaleDateString(
+                      "en-IN",
+                      {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      },
+                    )
                   : "N/A"}
               </p>
               <p className="text-xs text-gray-500">
                 {correctionBill?.correctionAt
-                  ? new Date(correctionBill.correctionAt).toLocaleTimeString("en-IN", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: true,
-                    })
+                  ? new Date(correctionBill.correctionAt).toLocaleTimeString(
+                      "en-IN",
+                      {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true,
+                      },
+                    )
                   : ""}
               </p>
             </div>
@@ -752,7 +808,9 @@ export const AllBills = () => {
               <div>
                 <span className="text-gray-500">Service:</span>
                 <span className="ml-2 font-medium text-gray-900">
-                  {serviceNames[correctionBill?.service] || correctionBill?.service || "N/A"}
+                  {serviceNames[correctionBill?.service] ||
+                    correctionBill?.service ||
+                    "N/A"}
                 </span>
               </div>
             </div>

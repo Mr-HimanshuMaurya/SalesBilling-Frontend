@@ -242,12 +242,12 @@ export const SuperAdminDashboard = () => {
           value={billsData?.total || 0}
           color="indigo"
         />
-        <StatCard
+        {/* <StatCard
           icon={CheckCircle}
           label="Approved Bills"
           value={approvedBills}
           color="green"
-        />
+        /> */}
         <StatCard
           icon={Clock}
           label="Pending Approval"
